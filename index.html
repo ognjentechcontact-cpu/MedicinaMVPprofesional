@@ -42,27 +42,16 @@
             transition: background 0.2s, color 0.2s; 
         }
 
-        /* LOGIN EKRAN */
-        #login-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background-color: var(--bg-color); z-index: 9999;
-            display: flex; justify-content: center; align-items: center;
-        }
-        .login-box {
-            background: var(--panel-bg); padding: 40px; border-radius: 8px;
-            border: 1px solid var(--border-color); width: 100%; max-width: 400px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        }
-
         header {
             display: flex; justify-content: space-between; align-items: center;
             padding-bottom: 20px; border-bottom: 1px solid var(--border-color); margin-bottom: 20px;
         }
 
         .header-controls { display: flex; gap: 15px; align-items: center; }
-        .info-zone, .theme-switch-zone {
-            background-color: var(--panel-bg); padding: 10px 15px;
+        .info-zone {
+            background-color: var(--panel-bg); padding: 5px 15px;
             border-radius: 6px; border: 1px solid var(--border-color); font-size: 14px;
+            display: flex; align-items: center; gap: 10px;
         }
 
         select, input, textarea {
@@ -89,7 +78,7 @@
         .form-group { margin-bottom: 15px; position: relative; }
         label { font-size: 13px; font-weight: 600; color: var(--text-muted); display: block; }
 
-        /* Protokol lista */
+        /* Tabela i liste */
         .patient-list-item {
             padding: 12px; border: 1px solid var(--border-color);
             border-radius: 6px; margin-bottom: 10px; cursor: pointer;
@@ -97,7 +86,6 @@
         }
         .patient-list-item.active { border-color: var(--accent-color); background-color: rgba(9, 105, 218, 0.08); }
         .delete-btn { background: none; color: var(--accent-danger) !important; padding: 5px 10px; font-size: 16px; border: none; cursor: pointer; }
-        .delete-btn:hover { background: rgba(207, 34, 46, 0.1); border-radius: 4px; }
 
         .badge { display: inline-block; padding: 4px 8px; font-size: 11px; border-radius: 4px; font-weight: bold; margin-top: 8px; }
         .badge-waiting { background-color: var(--accent-warn); color: #000 !important; }
@@ -108,6 +96,18 @@
         .role-section { display: none; }
         .role-section.active-section { display: block; }
 
+        .history-box {
+            background: rgba(128,128,128,0.05); padding: 10px; border-radius: 6px;
+            margin-top: 10px; max-height: 150px; overflow-y: auto; font-size: 13px;
+        }
+
+        .lab-checkbox-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;
+            background: rgba(0,0,0,0.02); padding: 15px; border-radius: 6px; border: 1px solid var(--border-color);
+        }
+        .lab-item { display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px; }
+        .lab-item input { width: auto; margin-top: 0; }
+
         .autocomplete-wrapper { position: relative; }
         .autocomplete-items {
             position: absolute; border: 1px solid var(--border-color); background-color: var(--panel-bg);
@@ -116,10 +116,9 @@
         .autocomplete-items div { padding: 10px; cursor: pointer; border-bottom: 1px solid var(--border-color); color: var(--text-color); }
         .autocomplete-items div:hover { background-color: var(--accent-color); color: white !important; }
 
-        /* SKRIVENI BLOKOVI ZA ŠTAMPU - VIDLJIVI SAMO TOKOM ŠTAMPE */
+        /* SKRIVENI BLOKOVI ZA ŠTAMPU */
         #print-container { display: none; }
 
-        /* STYLING ZA PROFESIONALNU ŠTAMPU NA A4 FORMATU */
         @media print {
             body * { display: none !important; }
             #print-container, #print-container * { display: block !important; }
@@ -130,12 +129,14 @@
             }
             .print-header { text-align: center; margin-bottom: 30px; border-bottom: 3px double #000; padding-bottom: 15px; }
             .print-header h1 { font-size: 22px; text-transform: uppercase; margin-bottom: 5px; color: #000 !important; }
-            .print-header p { font-size: 12px; color: #333; margin-bottom: 2px; }
             .print-title { text-align: center; font-size: 18px; font-weight: bold; margin: 25px 0; text-transform: uppercase; letter-spacing: 1px; }
             .print-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; background: #f9f9f9; padding: 15px; border: 1px solid #000; }
             .print-section { margin-bottom: 25px; }
             .print-section h3 { font-size: 15px; border-bottom: 1px solid #000; padding-bottom: 5px; margin-bottom: 10px; text-transform: uppercase; color: #000 !important;}
             .print-section p { font-size: 14px; white-space: pre-wrap; text-align: justify; }
+            .print-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+            .print-table th, .print-table td { border: 1px solid #000; padding: 8px; text-align: left; }
+            .print-table th { background: #eeeeee; }
             .print-footer { display: flex; justify-content: space-between; margin-top: 70px; font-size: 12px; }
             .signature-line { border-top: 1px solid #000; width: 220px; text-align: center; margin-top: 45px; padding-top: 5px; font-weight: bold; }
         }
@@ -143,99 +144,95 @@
 </head>
 <body>
 
-    <!-- OSIGURAN RBAC LOGIN PROZOR -->
-    <div id="login-overlay">
-        <div class="login-box">
-            <h2 style="text-align: center; margin-bottom: 5px;">MedCore HIS</h2>
-            <p style="text-align: center; color: var(--text-muted); font-size: 13px; margin-bottom: 25px;">Autorizacija medicinskog osoblja</p>
-            <div id="login-error" style="color: var(--accent-danger); font-weight: bold; font-size: 13px; text-align: center; margin-bottom: 15px; display: none;">Neispravno korisničko ime ili lozinka!</div>
-            <div class="form-group">
-                <label>Korisničko ime</label>
-                <input type="text" id="login-username" placeholder="Unesite korisničko ime">
-            </div>
-            <div class="form-group">
-                <label>Lozinka</label>
-                <input type="password" id="login-password" placeholder="Unesite lozinku">
-            </div>
-            <button onclick="pokušajLogin()" style="width: 100%; margin-top: 15px;">🔓 Prijavi se na sistem</button>
-        </div>
-    </div>
-
-    <!-- GLAVNA APLIKACIJA -->
     <header>
         <div>
-            <h1>MedCore HIS <span style="font-size: 14px; color: var(--text-muted); font-weight: normal;">Klinički Centar v2.1 (Persistent)</span></h1>
+            <h1>MedCore HIS <span style="font-size: 14px; color: var(--text-muted); font-weight: normal;">Klinički Centar v3.0 (EHR & Multi-Visit)</span></h1>
         </div>
         <div class="header-controls">
             <div class="info-zone">
-                Prijavljen radnik: <strong id="logged-user-display" style="color: var(--accent-color);"></strong>
+                🪪 <strong>Aktivna uloga:</strong>
+                <select id="global-role-selector" onchange="promeniUloguPrekoMenija(this.value)" style="width: auto; margin-top: 0; padding: 5px 10px;">
+                    <option value="sestra">Medicinska Sestra (Trijaža / Prijem)</option>
+                    <option value="lekar">Lekar Specijalista (Ambulanta)</option>
+                    <option value="konsultant">Specijalista Konsultant (Konzilijum)</option>
+                </select>
             </div>
             <div class="theme-switch-zone">
                 <button onclick="toggleTheme()" id="theme-btn" style="padding: 6px 12px; font-size: 12px; background-color: var(--text-color); color: var(--bg-color) !important;">🌙 Tamna Tema</button>
             </div>
-            <button onclick="odjaviSe()" class="btn-danger" style="padding: 8px 15px; font-size: 13px;">🔒 Odjavi se</button>
         </div>
     </header>
 
     <div class="grid-layout">
         
-        <!-- PROTOKOL PACIJENATA -->
-        <div style="border-right: 1px solid var(--border-color); padding-right: 15px; display: flex; flex-direction: column; justify-content: space-between; min-height: 70vh;">
+        <div style="border-right: 1px solid var(--border-color); padding-right: 15px; display: flex; flex-direction: column; justify-content: space-between; min-height: 75vh;">
             <div>
-                <h3>📋 Radni Protokol / Čekaonica</h3>
+                <h3>📋 Današnji Protokol / Čekaonica</h3>
                 <div id="patient-queue-list"></div>
             </div>
-            <!-- Reset dugme -->
             <div style="margin-top: 20px; border-top: 1px dashed var(--border-color); padding-top: 15px;">
                 <button onclick="resetujLokalnuBazu()" class="btn-danger" style="padding: 6px 12px; font-size: 11px; width: 100%; background-color: #57606a;">⚠️ Resetuj celu bazu podataka</button>
             </div>
         </div>
 
-        <!-- RADNI PROSTORI ZAVISNO OD ULOGE -->
         <main>
             
-            <!-- MODUL MEDICINSKE SESTRE -->
             <div id="section-sestra" class="role-section">
                 <div class="panel">
-                    <h2>📝 Otvaranje Novog Zdravstvenog Kartona i Trijaža</h2>
-                    <form id="form-prijem" onsubmit="registrujPacijenta(event)">
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                            <div class="form-group"><label>Ime pacijenta</label><input type="text" id="p-ime" required placeholder="Npr. Petar"></div>
-                            <div class="form-group"><label>Prezime pacijenta</label><input type="text" id="p-prezime" required placeholder="Npr. Petrović"></div>
+                    <h2>🔍 Pronađi ili Kreiraj Elektronski Zdravstveni Karton (EHR)</h2>
+                    <div class="form-group" style="display: flex; gap: 10px; align-items: flex-end;">
+                        <div style="flex: 1;">
+                            <label>Unesite JMBG pacijenta za pretragu</label>
+                            <input type="text" id="sestra-pretraga-jmbg" maxlength="13" placeholder="Upišite 13 cifara JMBG-a...">
                         </div>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                            <div class="form-group"><label>JMBG (13 cifara)</label><input type="text" id="p-jmbg" required maxlength="13" placeholder="Unesite JMBG"></div>
-                            <div class="form-group"><label>Kontakt telefon</label><input type="text" id="p-kontakt" placeholder="Npr. 065/123-456"></div>
-                        </div>
-                        <div class="form-group"><label>Alergije i Kontraindikacije</label><input type="text" id="p-alergije" value="Nema"></div>
+                        <button type="button" onclick="pretraziKartonPoJMBG()">🔍 Pretraži EHR</button>
+                    </div>
+
+                    <div id="sestra-ehr-rezultat" style="display: none; border-top: 1px solid var(--border-color); margin-top: 20px; padding-top: 20px;">
+                        <h3 id="sestra-ehr-naslov" style="color: var(--accent-color) !important;"></h3>
+                        <p id="sestra-ehr-detalji" style="font-size: 14px; margin-bottom: 10px;"></p>
                         
-                        <h3 style="margin-top: 25px; border-top: 1px solid var(--border-color); padding-top: 15px;">🩸 Primarni Vitalni Parametri</h3>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;">
-                            <div class="form-group"><label>Krvni Pritisak (mmHg)</label><input type="text" id="p-pritisak" value="120/80"></div>
-                            <div class="form-group"><label>Telesna Temp (°C)</label><input type="number" step="0.1" id="p-temperatura" value="36.6"></div>
-                            <div class="form-group"><label>Puls (bpm)</label><input type="number" id="p-puls" value="72"></div>
+                        <div class="history-box" id="sestra-ehr-istorija"></div>
+
+                        <h3 style="margin-top: 25px; border-top: 1px dashed var(--border-color); padding-top: 15px;">🩸 Otvaranje Novog Slučaja (Trijažni parametri za danas)</h3>
+                        <form id="form-otvori-slucaj" onsubmit="generisiNoviSlucajZaPacijenta(event)">
+                            <div class="form-group"><label>Alergije i Kontraindikacije</label><input type="text" id="p-alergije" value="Nema"></div>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;">
+                                <div class="form-group"><label>Krvni Pritisak (mmHg)</label><input type="text" id="p-pritisak" value="120/80"></div>
+                                <div class="form-group"><label>Telesna Temp (°C)</label><input type="number" step="0.1" id="p-temperatura" value="36.6"></div>
+                                <div class="form-group"><label>Puls (bpm)</label><input type="number" id="p-puls" value="72"></div>
+                            </div>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                                <div class="form-group"><label>Glikemija (mmol/L)</label><input type="number" step="0.1" id="p-secer" value="5.0"></div>
+                                <div class="form-group"><label>Težina (kg)</label><input type="number" step="0.1" id="p-tezina" value="75"></div>
+                            </div>
+                            <button type="submit" class="btn-success" style="width: 100%;">🚀 Otvori Slučaj i Pošalji u Čekaonicu</button>
+                        </form>
+                    </div>
+
+                    <div id="sestra-novi-pacijent-forma" style="display: none; border-top: 1px solid var(--border-color); margin-top: 20px; padding-top: 20px;">
+                        <h3 style="color: var(--accent-danger) !important;">⚠️ Pacijent nije pronađen. Kreiranje novog EHR kartona:</h3>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px;">
+                            <div class="form-group"><label>Ime</label><input type="text" id="p-novi-ime"></div>
+                            <div class="form-group"><label>Prezime</label><input type="text" id="p-novi-prezime"></div>
                         </div>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                            <div class="form-group"><label>Glikemija (mmol/L)</label><input type="number" step="0.1" id="p-secer" value="5.0"></div>
-                            <div class="form-group"><label>Težina (kg)</label><input type="number" step="0.1" id="p-tezina" value="75"></div>
-                        </div>
-                        <button type="submit" class="btn-success" style="width: 100%; margin-top: 10px;">💾 Otvori Karton i Uputi u Čekaonicu</button>
-                    </form>
+                        <div class="form-group"><label>Kontakt telefon</label><input type="text" id="p-novi-kontakt" placeholder="Npr. 065/123-456"></div>
+                        <button type="button" class="btn-success" onclick="napraviPotpunoNoviKarton()">💾 Kreiraj Karton u EHR Bazi</button>
+                    </div>
                 </div>
 
                 <div class="panel">
-                    <h2>🖨️ Dokumenatacija i Potvrde</h2>
+                    <h2>🖨️ Dokumentacija i Potvrde</h2>
                     <div id="sestra-akcije-prikaz">
-                        <span class="text-muted">Izaberite pacijenta iz protokola sa leve strane kako biste odštampali potvrdu termina.</span>
+                        <span class="text-muted">Izaberite pacijenta iz protokola sa leve strane kako biste štampali potvrdu otvorenog slučaja.</span>
                     </div>
                 </div>
             </div>
 
-            <!-- MODUL LEKARA SPECIJALISTE -->
             <div id="section-lekar" class="role-section">
                 <div class="panel">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                        <h2>🩺 Ambulantni Pregled i Specijalistička Obrada</h2>
+                        <h2>🩺 Ambulantni Pregled i Istorija Bolesti</h2>
                         <div id="lekar-print-buttons" style="display: flex; gap: 10px;"></div>
                     </div>
 
@@ -243,28 +240,48 @@
                         <span style="color: var(--text-muted);">Pacijent nije selektovan. Izaberite pacijenta iz protokola sa leve strane.</span>
                     </div>
 
-                    <div class="form-group">
-                        <label>Anamneza (Glavne tegobe, istorija bolesti)</label>
-                        <textarea id="l-anamneza" rows="4" placeholder="Upišite anamnestičke podatke pacijenta..."></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label>Objektivan Fizikalni Status</label>
-                        <textarea id="l-status" rows="4" placeholder="Nalaz po sistemima..."></textarea>
-                    </div>
-
-                    <div class="form-group autocomplete-wrapper">
-                        <label>Zvanična Dijagnoza (MKB-10 Baza)</label>
-                        <input type="text" id="l-mkb10" placeholder="Kucajte šifru ili naziv bolesti..." oninput="pretraziMKB10(this.value)">
-                        <div id="mkb10-lista" class="autocomplete-items" style="display: none;"></div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                        <div class="form-group">
+                            <label>Anamneza (Glavne tegobe, anamnestički podaci)</label>
+                            <textarea id="l-anamneza" rows="4" placeholder="Upišite anamnezu pacijenta..."></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Objektivan Fizikalni Status (Nalaz po sistemima)</label>
+                            <textarea id="l-status" rows="4" placeholder="Upišite fizikalni nalaz..."></textarea>
+                        </div>
                     </div>
 
-                    <div class="form-group autocomplete-wrapper">
-                        <label>E-Recept i Terapijski Plan</label>
-                        <input type="text" id="l-terapija" placeholder="Kucajte naziv leka ili terapijsku proceduru..." oninput="pretraziLekove(this.value)">
-                        <div id="lekovi-lista" class="autocomplete-items" style="display: none;"></div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                        <div class="form-group autocomplete-wrapper">
+                            <label>Zvanična Dijagnoza (MKB-10)</label>
+                            <input type="text" id="l-mkb10" placeholder="Kucajte šifru ili naziv..." oninput="pretraziMKB10(this.value)">
+                            <div id="mkb10-lista" class="autocomplete-items" style="display: none;"></div>
+                        </div>
+                        <div class="form-group autocomplete-wrapper">
+                            <label>E-Recept i Terapija</label>
+                            <input type="text" id="l-terapija" placeholder="Kucajte naziv leka..." oninput="pretraziLekove(this.value)">
+                            <div id="lekovi-lista" class="autocomplete-items" style="display: none;"></div>
+                        </div>
                     </div>
 
-                    <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid var(--border-color);">
+                    <div class="panel" style="background: rgba(0,0,0,0.01); padding: 15px; border-style: dotted; margin-bottom: 15px;">
+                        <h3>🔬 Selekcija Panela za Laboratorijski Uput</h3>
+                        <div class="lab-checkbox-grid">
+                            <label class="lab-item"><input type="checkbox" id="lab-kks" checked> [KKS] Kompletna krvna slika</label>
+                            <label class="lab-item"><input type="checkbox" id="lab-bio" checked> [BIO] Biohemijski panel (Glikemija, Urea, Kr)</label>
+                            <label class="lab-item"><input type="checkbox" id="lab-koa"> [KOA] Koagulacija (PT, aPTT, INR)</label>
+                            <label class="lab-item"><input type="checkbox" id="lab-uri"> [URI] Urin sa sedimentom</label>
+                            <label class="lab-item"><input type="checkbox" id="lab-crp"> [CRP] Inflamatorni marker</label>
+                            <label class="lab-item"><input type="checkbox" id="lab-lip"> [LIP] Lipidni status (Holesterol, Trigliceridi)</label>
+                        </div>
+                    </div>
+
+                    <div class="form-group" id="lekar-konacni-zakljucak-zona" style="display: none; background: rgba(26, 127, 55, 0.05); padding: 15px; border-radius: 6px; border: 1px solid var(--accent-success);">
+                        <label style="color: var(--accent-success); font-weight: bold;">📝 Konačan zaključak i Epikriza lekara (Nakon konsultativnog mišljenja)</label>
+                        <textarea id="l-konacni-zakljucak" rows="3" placeholder="Napišite vaše konačne zaključke na osnovu mišljenja profesora/konsultanta..."></textarea>
+                    </div>
+
+                    <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border-color);">
                         <h3>🔄 Konsultativni Uputi i Finalizacija</h3>
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 10px;">
                             <div>
@@ -285,7 +302,6 @@
                 </div>
             </div>
 
-            <!-- MODUL KONSULTANTA -->
             <div id="section-konsultant" class="role-section">
                 <div class="panel">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
@@ -314,7 +330,6 @@
         </main>
     </div>
 
-    <!-- ŠTAMPA CONTAINER -->
     <div id="print-container">
         <div class="print-header">
             <h1>ZDRAVSTVENI CENTAR MEDCORE</h1>
@@ -335,8 +350,8 @@
 
         <div class="print-footer">
             <div>
-                <p>Sistem generisao: MedCore HIS</p>
-                <p>ID dokumenta: MC-2026-X</p>
+                <p>Sistem generisao: MedCore HIS v3.0</p>
+                <p>Ustanova: Aranđelovac</p>
             </div>
             <div>
                 <div class="signature-line" id="print-signature-label">Potpis lekara specijaliste</div>
@@ -344,31 +359,58 @@
         </div>
     </div>
 
-    <!-- JAVASCRIPT LOGIKA -->
     <script>
-        const podrazumevaniPacijenti = [
+        // Fabrička baza struktuirana kao pravi elektronski karton (EHR) sa istorijom poseta
+        const podrazumevaniEHR = [
             {
-                id: 1, ime: "Jovan", prezime: "Petrović", jmbg: "1212971710055", kontakt: "062/111-222", alergije: "Nema",
-                pritisak: "145/95", temperatura: 36.8, puls: 88, secer: 6.4, tezina: 94,
-                status: "Ceka_lekara", anamneza: "", statusLekara: "", dijagnoza: "", terapija: "", uputRazlog: "", misljenjeKonsultanta: ""
+                id: 101, ime: "Jovan", prezime: "Petrović", jmbg: "1212971710055", kontakt: "062/111-222",
+                posete: [
+                    {
+                        posetaId: 1, datum: "12.05.2026. 09:15", status: "Ceka_lekara", alergije: "Nema",
+                        pritisak: "145/95", temperatura: 36.8, puls: 88, secer: 6.4, tezina: 94,
+                        anamneza: "", statusLekara: "", dijagnoza: "", terapija: "", uputRazlog: "", misljenjeKonsultanta: "", konacniZakljucak: ""
+                    }
+                ]
             },
             {
-                id: 2, ime: "Milica", prezime: "Kovačević", jmbg: "0508985715022", kontakt: "063/888-777", alergije: "Brufen",
-                pritisak: "110/70", temperatura: 38.4, puls: 102, secer: 5.2, tezina: 59,
-                status: "Uput_konsultant", 
-                anamneza: "Pacijentkinja se žali na paroksizmalno lupanje srca, gušenje i malaksalost.", 
-                statusLekara: "Febrilna, tahikardična, pluća auskultatorno jasna.", 
-                dijagnoza: "I48 - Pretkomorska fibrilacija i flater", 
-                terapija: "Amiodaron 200mg (1x1)",
-                uputRazlog: "Molim konzilijarni pregled kardiologa i mišljenje oko stabilizacije ritma.", 
-                misljenjeKonsultanta: ""
+                id: 102, ime: "Milica", prezime: "Kovačević", jmbg: "0508985715022", kontakt: "063/888-777",
+                posete: [
+                    {
+                        posetaId: 2, datum: "13.06.2026. 11:30", status: "Uput_konsultant", alergije: "Brufen",
+                        pritisak: "110/70", temperatura: 38.4, puls: 102, secer: 5.2, tezina: 59,
+                        anamneza: "Pacijentkinja se žali na paroksizmalno lupanje srca, gušenje i malaksalost.", 
+                        statusLekara: "Febrilna, tahikardična, pluća auskultatorno jasna.", 
+                        dijagnoza: "I48 - Pretkomorska fibrilacija i flater", 
+                        terapija: "Amiodaron 200mg (1x1)",
+                        uputRazlog: "Molim konzilijarni pregled kardiologa i mišljenje oko stabilizacije ritma.", 
+                        misljenjeKonsultanta: "", konacniZakljucak: ""
+                    }
+                ]
             }
         ];
 
-        let pacijenti = JSON.parse(localStorage.getItem('medcore_patients'));
-        if (!pacijenti) {
-            pacijenti = podrazumevaniPacijenti;
-            localStorage.setItem('medcore_patients', JSON.stringify(pacijenti));
+        let ehrBaza = JSON.parse(localStorage.getItem('medcore_ehr_records'));
+
+        // DETEKCIJA STARIH PODATAKA I BEZBEDNA MIGRACIJA KAKO TI SE NE BI BRISALI PACIJENTI
+        if (!ehrBaza) {
+            let stariPacijenti = JSON.parse(localStorage.getItem('medcore_patients'));
+            if (stariPacijenti && stariPacijenti.length > 0 && !stariPacijenti[0].hasOwnProperty('posete')) {
+                // Konvertuj stare podatke u novu EHR strukturu sa posetama
+                ehrBaza = stariPacijenti.map(stari => {
+                    return {
+                        id: stari.id, ime: stari.ime, prezime: stari.prezime, jmbg: stari.jmbg, kontakt: stari.kontakt || "",
+                        posete: [{
+                            posetaId: stari.id, datum: new Date().toLocaleString('sr-RS'), status: stari.status, alergije: stari.alergije,
+                            pritisak: stari.pritisak, temperatura: stari.temperatura, puls: stari.puls, secer: stari.secer, tezina: stari.tezina,
+                            anamneza: stari.anamneza, statusLekara: stari.statusLekara, dijagnoza: stari.dijagnoza, terapija: stari.terapija,
+                            uputRazlog: stari.uputRazlog, misljenjeKonsultanta: stari.misljenjeKonsultanta, konacniZakljucak: ""
+                        }]
+                    };
+                });
+            } else {
+                ehrBaza = podrazumevaniEHR;
+            }
+            localStorage.setItem('medcore_ehr_records', JSON.stringify(ehrBaza));
         }
 
         const mkb10Baza = [
@@ -384,57 +426,39 @@
             "Monopril 10mg (1x1 ujutru)", "Metformin 850mg (2x1 uz obrok)", "Amiodaron 200mg (1x1)", "Pancef 400mg (1x1, 5 dana)"
         ];
 
-        let trenutnoSelektovaniPacijentId = null;
-        let trenutnaUloga = null;
+        let trenutnoSelektovanaPosetaId = null;
+        let trenutnoNadjenPacijentIzPretrage = null;
+        let trenutnaUloga = "sestra"; // Počinjemo kao sestra
 
-        // Inicijalno crtanje protokola odmah po učitavanju skripte
-        osveziRedCekanja();
+        // Pokretanje inicijalnog stanja sistema
+        promeniUloguPrekoMenija("sestra");
 
         function sacuvajUBazu() {
-            localStorage.setItem('medcore_patients', JSON.stringify(pacijenti));
+            localStorage.setItem('medcore_ehr_records', JSON.stringify(ehrBaza));
         }
 
         function resetujLokalnuBazu() {
             if(confirm("Da li želite da obrišete sve unose i vratite fabričke demo pacijente?")) {
                 localStorage.removeItem('medcore_patients');
-                pacijenti = JSON.parse(JSON.stringify(podrazumevaniPacijenti));
+                localStorage.removeItem('medcore_ehr_records');
+                ehrBaza = JSON.parse(JSON.stringify(podrazumevaniEHR));
                 sacuvajUBazu();
                 osveziRedCekanja();
                 ocistiPanele();
+                promeniUloguPrekoMenija(trenutnaUloga);
                 alert("Baza uspešno resetovana!");
             }
         }
 
-        function pokušajLogin() {
-            const u = document.getElementById('login-username').value.trim();
-            const p = document.getElementById('login-password').value.trim();
-            const errorBlock = document.getElementById('login-error');
+        function promeniUloguPrekoMenija(novaUloga) {
+            trenutnaUloga = novaUloga;
+            document.getElementById("global-role-selector").value = novaUloga;
 
-            if (u === 'sestra' && p === 'sestra') { aktivirajUlogu('sestra', 'Medicinska Sestra (Trijaža)'); } 
-            else if (u === 'doktor' && p === 'doktor') { aktivirajUlogu('lekar', 'Lekar Specijalista'); } 
-            else if (u === 'konsultant' && p === 'konsultant') { aktivirajUlogu('konsultant', 'Specijalista Konsultant'); } 
-            else { errorBlock.style.display = 'block'; }
-        }
-
-        function aktivirajUlogu(uloga, nazivUloge) {
-            trenutnaUloga = uloga;
-            document.getElementById('login-overlay').style.display = 'none';
-            document.getElementById('logged-user-display').innerText = nazivUloge;
-            document.getElementById('login-error').style.display = 'none';
-            
             document.querySelectorAll('.role-section').forEach(sec => sec.classList.remove('active-section'));
-            document.getElementById(`section-${uloga}`).classList.add('active-section');
+            document.getElementById(`section-${novaUloga}`).classList.add('active-section');
             
             osveziRedCekanja();
             ocistiPanele();
-        }
-
-        function odjaviSe() {
-            trenutnaUloga = null;
-            document.getElementById('login-username').value = '';
-            document.getElementById('login-password').value = '';
-            document.getElementById('login-overlay').style.display = 'flex';
-            osveziRedCekanja();
         }
 
         function toggleTheme() {
@@ -445,323 +469,141 @@
         }
 
         function ocistiPanele() {
-            trenutnoSelektovaniPacijentId = null;
+            trenutnoSelektovanaPosetaId = null;
             document.getElementById('lekar-pacijent-info').innerHTML = `<span style="color: var(--text-muted);">Pacijent nije selektovan. Izaberite pacijenta iz protokola sa leve strane.</span>`;
             document.getElementById('konsultant-pacijent-info').innerHTML = `<span style="color: var(--text-muted);">Izaberite pacijenta sa oznakom "Uput" iz protokola.</span>`;
             document.getElementById('l-anamneza').value = "";
             document.getElementById('l-status').value = "";
             document.getElementById('l-mkb10').value = "";
             document.getElementById('l-terapija').value = "";
+            document.getElementById('l-konacni-zakljucak').value = "";
+            document.getElementById('lekar-konacni-zakljucak-zona').style.display = "none";
             document.getElementById('k-razlog-prikaz').innerText = "";
             document.getElementById('k-misljenje').value = "";
-            document.getElementById('sestra-akcije-prikaz').innerHTML = `<span class="text-muted">Izaberite pacijenta iz protokola sa leve strane kako biste odštampali potvrdu termina.</span>`;
+            document.getElementById('sestra-akcije-prikaz').innerHTML = `<span class="text-muted">Izaberite pacijenta iz protokola sa leve strane kako biste štampali potvrdu otvorenog slučaja.</span>`;
             document.getElementById('lekar-print-buttons').innerHTML = '';
             document.getElementById('konsultant-print-buttons').innerHTML = '';
+            
+            // Sestra modul čišćenje pretrage
+            document.getElementById('sestra-pretraga-jmbg').value = "";
+            document.getElementById('sestra-ehr-rezultat').style.display = "none";
+            document.getElementById('sestra-novi-pacijent-forma').style.display = "none";
+            trenutnoNadjenPacijentIzPretrage = null;
         }
 
+        // PROTOKOL DANAŠNJIH PREGLEDA (Skuplja aktivne posete iz svih EHR kartona)
         function osveziRedCekanja() {
             const container = document.getElementById('patient-queue-list');
             container.innerHTML = "";
 
-            pacijenti.forEach(p => {
-                let badgeClass = "badge-waiting";
-                let statusTekst = "Čeka lekara";
+            ehrBaza.forEach(pacijent => {
+                pacijent.posete.forEach(poseta => {
+                    // Prikazujemo samo posete koje nisu skroz završene ako smo sestra ili lekar, ili filtriramo po potrebi
+                    let badgeClass = "badge-waiting";
+                    let statusTekst = "Čeka lekara";
 
-                if (p.status === "Uput_konsultant") { badgeClass = "badge-cons"; statusTekst = "Uput za konsultaciju"; }
-                else if (p.status === "Kod_lekara") { badgeClass = "badge-doc"; statusTekst = "Kod lekara"; }
-                else if (p.status === "Zavrseno") { badgeClass = "badge-done"; statusTekst = "Završeno"; }
+                    if (poseta.status === "Uput_konsultant") { badgeClass = "badge-cons"; statusTekst = "Uput za konsultaciju"; }
+                    else if (poseta.status === "Kod_lekara") { badgeClass = "badge-doc"; statusTekst = "Kod lekara"; }
+                    else if (poseta.status === "Zavrseno") { badgeClass = "badge-done"; statusTekst = "Završeno"; }
 
-                let utisano = "";
-                if (trenutnaUloga === "konsultant" && p.status !== "Uput_konsultant") {
-                    utisano = "opacity: 0.3; pointer-events: none;";
-                }
+                    let utisano = "";
+                    if (trenutnaUloga === "konsultant" && poseta.status !== "Uput_konsultant") {
+                        utisano = "opacity: 0.3; pointer-events: none;";
+                    }
 
-                const div = document.createElement('div');
-                div.className = `patient-list-item ${p.id === trenutnoSelektovaniPacijentId ? 'active' : ''}`;
-                div.style = utisano;
-                
-                div.onclick = (e) => {
-                    if(e.target.classList.contains('delete-btn')) return;
-                    selektujPacijenta(p.id);
-                };
+                    const div = document.createElement('div');
+                    div.className = `patient-list-item ${poseta.posetaId === trenutnoSelektovanaPosetaId ? 'active' : ''}`;
+                    div.style = utisano;
+                    
+                    div.onclick = (e) => {
+                        if(e.target.classList.contains('delete-btn')) return;
+                        selektujPosetu(pacijent.id, poseta.posetaId);
+                    };
 
-                let kantaHtml = '';
-                if(trenutnaUloga === 'sestra') {
-                    kantaHtml = `<button class="delete-btn" onclick="izbrisiKarton(${p.id})">🗑️</button>`;
-                }
+                    let kantaHtml = '';
+                    if(trenutnaUloga === 'sestra') {
+                        kantaHtml = `<button class="delete-btn" onclick="izbrisiPosetu(${pacijent.id}, ${poseta.posetaId})">🗑️</button>`;
+                    }
 
-                div.innerHTML = `
-                    <div>
-                        <strong>${p.ime} ${p.prezime}</strong><br>
-                        <span style="font-size:12px; color: var(--text-muted);">JMBG: ${p.jmbg}</span><br>
-                        <span class="badge ${badgeClass}">${statusTekst}</span>
-                    </div>
-                    ${kantaHtml}
-                `;
-                container.appendChild(div);
+                    div.innerHTML = `
+                        <div>
+                            <strong>${pacijent.ime} ${pacijent.prezime}</strong><br>
+                            <span style="font-size:12px; color: var(--text-muted);">JMBG: ${pacijent.jmbg}</span><br>
+                            <span class="badge ${badgeClass}">${statusTekst}</span>
+                        </div>
+                        ${kantaHtml}
+                    `;
+                    container.appendChild(div);
+                });
             });
         }
 
-        function izbrisiKarton(id) {
-            if(confirm("Da li ste sigurni da želite trajno da izbrišete ovaj zdravstveni karton?")) {
-                pacijenti = pacijenti.filter(x => x.id !== id);
-                sacuvajUBazu();
-                osveziRedCekanja();
-                ocistiPanele();
+        // SESTRA METODE: RAD SA EHR KARTONIMA
+        function pretraziKartonPoJMBG() {
+            const jmbg = document.getElementById('sestra-pretraga-jmbg').value.trim();
+            if(jmbg.length !== 13) return alert("JMBG mora imati tačno 13 cifara!");
+
+            document.getElementById('sestra-ehr-rezultat').style.display = "none";
+            document.getElementById('sestra-novi-pacijent-forma').style.display = "none";
+
+            const pacijent = ehrBaza.find(x => x.jmbg === jmbg);
+
+            if(pacijent) {
+                trenutnoNadjenPacijentIzPretrage = pacijent;
+                document.getElementById('sestra-ehr-naslov').innerText = `🔓 EHR Otvoren: ${pacijent.ime} ${pacijent.prezime}`;
+                document.getElementById('sestra-ehr-detalji').innerText = `JMBG: ${pacijent.jmbg} | Kontakt telefon: ${pacijent.kontakt || 'Nema telefona'}`;
+                
+                // Ispis istorije prethodnih slučajeva
+                const istorijaBox = document.getElementById('sestra-ehr-istorija');
+                istorijaBox.innerHTML = "<strong>Istorija ranijih poseta i dijagnoza:</strong><br>";
+                if(pacijent.posete.length === 0) {
+                    istorijaBox.innerHTML += "<span class='text-muted'>Nema prethodnih registrovanih slučajeva.</span>";
+                } else {
+                    pacijent.posete.forEach(pos => {
+                        istorijaBox.innerHTML += `• [${pos.datum}] Status: ${pos.status} | Dijagnoza: ${pos.dijagnoza || 'Nema/U radu'}<br>`;
+                    });
+                }
+                document.getElementById('sestra-ehr-rezultat').style.display = "block";
+            } else {
+                document.getElementById('sestra-novi-pacijent-forma').style.display = "block";
             }
         }
 
-        function registrujPacijenta(e) {
-            e.preventDefault();
-            const novi = {
+        function napraviPotpunoNoviKarton() {
+            const ime = document.getElementById('p-novi-ime').value.trim();
+            const prezime = document.getElementById('p-novi-prezime').value.trim();
+            const jmbg = document.getElementById('sestra-pretraga-jmbg').value.trim();
+            const kontakt = document.getElementById('p-novi-kontakt').value.trim();
+
+            if(!ime || !prezime) return alert("Upišite ime i prezime pacijenta!");
+
+            const noviPacijent = {
                 id: Date.now(),
-                ime: document.getElementById('p-ime').value,
-                prezime: document.getElementById('p-prezime').value,
-                jmbg: document.getElementById('p-jmbg').value,
-                kontakt: document.getElementById('p-kontakt').value,
+                ime: ime,
+                prezime: prezime,
+                jmbg: jmbg,
+                kontakt: kontakt,
+                posete: []
+            };
+
+            ehrBaza.push(noviPacijent);
+            sacuvajUBazu();
+            alert("Kreiran je novi jedinstveni elektronski karton u EHR bazi podataka!");
+            pretraziKartonPoJMBG();
+        }
+
+        function generisiNoviSlucajZaPacijenta(e) {
+            e.preventDefault();
+            if(!trenutnoNadjenPacijentIzPretrage) return;
+
+            const novaPoseta = {
+                posetaId: Date.now(),
+                datum: new Date().toLocaleString('sr-RS'),
+                status: "Ceka_lekara",
                 alergije: document.getElementById('p-alergije').value,
                 pritisak: document.getElementById('p-pritisak').value,
                 temperatura: parseFloat(document.getElementById('p-temperatura').value),
                 puls: parseInt(document.getElementById('p-puls').value),
                 secer: parseFloat(document.getElementById('p-secer').value),
                 tezina: parseFloat(document.getElementById('p-tezina').value),
-                status: "Ceka_lekara",
-                anamneza: "", statusLekara: "", dijagnoza: "", terapija: "", uputRazlog: "", misljenjeKonsultanta: ""
-            };
-            pacijenti.push(novi);
-            sacuvajUBazu();
-            osveziRedCekanja();
-            alert("Novi zdravstveni karton uspešno otvoren i trajno sačuvan!");
-            document.getElementById('form-prijem').reset();
-        }
-
-        function selektujPacijenta(id) {
-            trenutnoSelektovaniPacijentId = id;
-            osveziRedCekanja();
-            const p = pacijenti.find(x => x.id === id);
-
-            if (trenutnaUloga === "sestra") {
-                document.getElementById('sestra-akcije-prikaz').innerHTML = `
-                    <div style="background: rgba(128,128,128,0.02); padding: 15px; border-radius: 6px; border: 1px solid var(--border-color);">
-                        <p style="margin-bottom: 15px;">Izabran pacijent: <strong>${p.ime} ${p.prezime}</strong></p>
-                        <button class="btn-warn" style="width:100%;" onclick="stampajSestraTermin(${p.id})">🖨️ Štampaj Potvrdu i Karton Trijaže</button>
-                    </div>
-                `;
-            }
-
-            if (trenutnaUloga === "lekar") {
-                if(p.status === "Ceka_lekara") { 
-                    p.status = "Kod_lekara"; 
-                    sacuvajUBazu();
-                    osveziRedCekanja(); 
-                }
-
-                document.getElementById('lekar-pacijent-info').innerHTML = `
-                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-                        <div><strong>Pacijent:</strong> ${p.ime} ${p.prezime} | <strong>JMBG:</strong> ${p.jmbg}</div>
-                        <div><strong>Alergije:</strong> <span style="color:var(--accent-danger); font-weight:bold;">${p.alergije}</span></div>
-                    </div>
-                    <div style="margin-top:8px; font-size:13px; color:var(--text-muted);">
-                        Vitalni parametri sestre -> TA: ${p.pritisak} | Temp: ${p.temperatura}°C | Puls: ${p.puls} bpm | Glikemija: ${p.secer} mmol/L | Težina: ${p.tezina} kg
-                    </div>
-                    ${p.misljenjeKonsultanta ? `<div style="margin-top:10px; padding:10px; background:rgba(188,140,255,0.1); border-left:4px solid #bc8cff;"><strong>Konzilijarni nalaz konsultanta:</strong> ${p.misljenjeKonsultanta}</div>` : ''}
-                `;
-
-                document.getElementById('l-anamneza').value = p.anamneza;
-                document.getElementById('l-status').value = p.statusLekara;
-                document.getElementById('l-mkb10').value = p.dijagnoza;
-                document.getElementById('l-terapija').value = p.terapija;
-
-                document.getElementById('lekar-print-buttons').innerHTML = `
-                    <button class="btn-secondary" onclick="stampajLekarIzvestaj(${p.id})">🖨️ Izveštaj</button>
-                    <button class="btn-secondary" onclick="stampajLekarAnalize(${p.id})">🔬 Uput za Analize</button>
-                `;
-            }
-
-            if (trenutnaUloga === "konsultant") {
-                document.getElementById('konsultant-pacijent-info').innerHTML = `
-                    <strong>Pacijent:</strong> ${p.ime} ${p.prezime} | JMBG: ${p.jmbg}<br>
-                    <strong>Primarni nalaz lekara:</strong> ${p.anamneza}<br>
-                    <strong>Radna Dijagnoza:</strong> ${p.dijagnoza}
-                `;
-                document.getElementById('k-razlog-prikaz').innerText = p.uputRazlog || "Nije naznačen.";
-                document.getElementById('k-misljenje').value = p.misljenjeKonsultanta;
-
-                document.getElementById('konsultant-print-buttons').innerHTML = `
-                    <button class="btn-warn" onclick="stampajKonsultantIzvestaj(${p.id})">🖨️ Štampaj Nalaz Konsultanta</button>
-                `;
-            }
-        }
-
-        function posaljiKonsultantu() {
-            if(!trenutnoSelektovaniPacijentId) return alert("Izaberite pacijenta!");
-            let p = pacijenti.find(x => x.id === trenutnoSelektovaniPacijentId);
-            p.anamneza = document.getElementById('l-anamneza').value;
-            p.statusLekara = document.getElementById('l-status').value;
-            p.dijagnoza = document.getElementById('l-mkb10').value;
-            p.terapija = document.getElementById('l-terapija').value;
-            p.uputRazlog = document.getElementById('l-uput-razlog').value;
-            p.status = "Uput_konsultant";
-            sacuvajUBazu();
-            alert("Karton prosleđen u konzilijarni inbox konsultanta.");
-            osveziRedCekanja();
-            ocistiPanele();
-        }
-
-        function zavrsiPregledLekara() {
-            if(!trenutnoSelektovaniPacijentId) return alert("Izaberite pacijenta!");
-            let p = pacijenti.find(x => x.id === trenutnoSelektovaniPacijentId);
-            p.anamneza = document.getElementById('l-anamneza').value;
-            p.statusLekara = document.getElementById('l-status').value;
-            p.dijagnoza = document.getElementById('l-mkb10').value;
-            p.terapija = document.getElementById('l-terapija').value;
-            p.status = "Zavrseno";
-            sacuvajUBazu();
-            alert("Pregled uspešno završen i arhiviran.");
-            osveziRedCekanja();
-            ocistiPanele();
-        }
-
-        function sacuvajMisljenjeKonsultanta() {
-            if(!trenutnoSelektovaniPacijentId) return alert("Izaberite pacijenta!");
-            let p = pacijenti.find(x => x.id === trenutnoSelektovaniPacijentId);
-            p.misljenjeKonsultanta = document.getElementById('k-misljenje').value;
-            p.status = "Kod_lekara";
-            sacuvajUBazu();
-            alert("Ekspertski nalaz sačuvan i vraćen ordinirajućem lekaru.");
-            osveziRedCekanja();
-            ocistiPanele();
-        }
-
-        function pretraziMKB10(val) {
-            const lista = document.getElementById('mkb10-lista');
-            if(!val) { lista.style.display='none'; return; }
-            lista.innerHTML = '';
-            let filtrirano = mkb10Baza.filter(x => x.sifra.toLowerCase().includes(val.toLowerCase()) || x.naziv.toLowerCase().includes(val.toLowerCase()));
-            if(filtrirano.length > 0) {
-                lista.style.display = 'block';
-                filtrirano.forEach(b => {
-                    let d = document.createElement('div');
-                    d.innerText = `${b.sifra} - ${b.naziv}`;
-                    d.onclick = () => { document.getElementById('l-mkb10').value = `${b.sifra} - ${b.naziv}`; lista.style.display='none'; };
-                    lista.appendChild(d);
-                });
-            } else { lista.style.display='none'; }
-        }
-
-        function pretraziLekove(val) {
-            const lista = document.getElementById('lekovi-lista');
-            if(!val) { lista.style.display='none'; return; }
-            lista.innerHTML = '';
-            let filtrirano = lekoviBaza.filter(x => x.toLowerCase().includes(val.toLowerCase()));
-            if(filtrirano.length > 0) {
-                lista.style.display = 'block';
-                filtrirano.forEach(l => {
-                    let d = document.createElement('div');
-                    d.innerText = l;
-                    d.onclick = () => { document.getElementById('l-terapija').value = l; lista.style.display='none'; };
-                    lista.appendChild(d);
-                });
-            } else { lista.style.display='none'; }
-        }
-
-        // PRINT ENGINE
-        function popuniOsnovnePodatkeZaPrint(p, naslov) {
-            document.getElementById('print-doc-title').innerText = naslov;
-            document.getElementById('print-p-ime').innerText = `${p.ime} ${p.prezime}`;
-            document.getElementById('print-p-jmbg').innerText = p.jmbg;
-            document.getElementById('print-p-kontakt').innerText = p.kontakt || "Nije uneto";
-            document.getElementById('print-p-alergije').innerText = p.alergije;
-            document.getElementById('print-p-datum').innerText = new Date().toLocaleString('sr-RS');
-        }
-
-        function stampajSestraTermin(id) {
-            const p = pacijenti.find(x => x.id === id);
-            popuniOsnovnePodatkeZaPrint(p, "POTVRDA O PRIJEMU I TRIJAŽNI LIST");
-            document.getElementById('print-signature-label').innerText = "Potpis medicinske sestre";
-            
-            document.getElementById('print-dynamic-content').innerHTML = `
-                <div class="print-section">
-                    <h3>Uputna klinička grupa i status</h3>
-                    <p>Pacijent je administrativno proknjižen i upućen u ambulantni red čekanja kod ordinirajućeg lekara specijaliste.</p>
-                </div>
-                <div class="print-section">
-                    <h3>Izmereni Vitalni Parametri prilikom prijema</h3>
-                    <p>• Krvni pritisak: <strong>${p.pritisak} mmHg</strong><br>
-                       • Telesna temperatura: <strong>${p.temperatura} °C</strong><br>
-                       • Srčana frekvencija (Puls): <strong>${p.puls} bpm</strong><br>
-                       • Nivo šećera u krvi (Glikemija): <strong>${p.secer} mmol/L</strong><br>
-                       • Telesna masa: <strong>${p.tezina} kg</strong></p>
-                </div>
-            `;
-            window.print();
-        }
-
-        function stampajLekarIzvestaj(id) {
-            const p = pacijenti.find(x => x.id === id);
-            popuniOsnovnePodatkeZaPrint(p, "IZVEŠTAJ LEKARA SPECIJALISTE");
-            document.getElementById('print-signature-label').innerText = "Faksimil i potpis lekara";
-
-            document.getElementById('print-dynamic-content').innerHTML = `
-                <div class="print-section">
-                    <h3>Anamneza</h3>
-                    <p>${document.getElementById('l-anamneza').value || 'Nema unetih podataka.'}</p>
-                </div>
-                <div class="print-section">
-                    <h3>Objektivan Status / Fizikalni Nalaz</h3>
-                    <p>${document.getElementById('l-status').value || 'Nema unetih podataka.'}</p>
-                </div>
-                <div class="print-section">
-                    <h3>Dijagnoza (MKB-10)</h3>
-                    <p><strong>${document.getElementById('l-mkb10').value || 'Nije definisana.'}</strong></p>
-                </div>
-                <div class="print-section">
-                    <h3>Ordinirana Farmakoterapija i Savet</h3>
-                    <p>${document.getElementById('l-terapija').value || 'Bez terapije.'}</p>
-                </div>
-            `;
-            window.print();
-        }
-
-        function stampajLekarAnalize(id) {
-            const p = pacijenti.find(x => x.id === id);
-            popuniOsnovnePodatkeZaPrint(p, "UPUT ZA LABORATORIJSKU I DIJAGNOSTIČKU ANALIZU");
-            document.getElementById('print-signature-label').innerText = "Potpis lekara koji upućuje";
-
-            document.getElementById('print-dynamic-content').innerHTML = `
-                <div class="print-section">
-                    <h3>Indikovana Dijagnoza</h3>
-                    <p><strong>${document.getElementById('l-mkb10').value || 'Radna dijagnoza nije uneta'}</strong></p>
-                </div>
-                <div class="print-section">
-                    <h3>Zahtevani Laboratorijski Paneli</h3>
-                    <p>Molimo da se kod pacijenta sprovedu sledeće hitne laboratorijske analize:<br>
-                    <strong>[✓] Kompletna krvna slika (KKS) sa leukocitarnom formulom</strong><br>
-                    <strong>[✓] Osnovni biohemijski panel (Urea, Kreatinin, AST, ALT, Glikemija)</strong><br>
-                    <strong>[✓] Koagulacioni status (PT, aPTT, INR)</strong><br>
-                    <strong>[✓] Elektroliti (Na, K, Cl)</strong></p>
-                </div>
-            `;
-            window.print();
-        }
-
-        function stampajKonsultantIzvestaj(id) {
-            const p = pacijenti.find(x => x.id === id);
-            popuniOsnovnePodatkeZaPrint(p, "KONZILIJARNO MIŠLJENJE LEKARA KONSULTANTA");
-            document.getElementById('print-signature-label').innerText = "Potpis profesora / konsultanta";
-
-            document.getElementById('print-dynamic-content').innerHTML = `
-                <div class="print-section">
-                    <h3>Razlog i Indikacija Konzilijuma</h3>
-                    <p><em>${p.uputRazlog || 'Konsultacija po zahtevu ordinirajućeg lekara.'}</em></p>
-                </div>
-                <div class="print-section">
-                    <h3>Ekspertski Zaključak Konsultanta</h3>
-                    <p>${document.getElementById('k-misljenje').value || 'Nema unetog mišljenja.'}</p>
-                </div>
-            `;
-            window.print();
-        }
-    </script>
-</body>
-</html>
+                anamneza: "", statusLekara: "", dijagnoza:
