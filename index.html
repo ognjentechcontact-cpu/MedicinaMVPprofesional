@@ -2,7 +2,7 @@
 <html lang="sr">
 <head>
     <meta charset="UTF-8">
-    <title>ognjen.tech | Multi-Specijalistički Medicinski Sistem</title>
+    <title>ognjen.tech | Multi-Specijalistički Medicinski Sistem v3</title>
     <style>
         :root {
             --bg-main: #f1f5f9;
@@ -13,6 +13,7 @@
             --accent-light: #f0f9ff;
             --accent-green: #16a34a;
             --accent-amber: #ea580c;
+            --accent-purple: #6b21a8;
             --text-main: #334155;
             --text-muted: #64748b;
         }
@@ -20,7 +21,6 @@
         * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body { background-color: var(--bg-main); color: var(--text-main); margin: 0; padding: 0; }
 
-        /* --- TOP BAR SA SVIM ULOGAMA --- */
         .system-top-bar { background: var(--accent-blue); color: #fff; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
         .system-top-bar h2 { margin: 0; font-size: 15px; letter-spacing: 0.5px; font-weight: 700; }
         .role-selector-zone { display: flex; align-items: center; gap: 10px; }
@@ -28,7 +28,6 @@
 
         .app-container { max-width: 1400px; margin: 20px auto; padding: 0 20px; }
         
-        /* RADNA KANVAC */
         .search-panel { background: var(--panel-bg); border: 1px solid var(--border-color); padding: 15px 20px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
         .search-box-group { display: flex; gap: 12px; margin-top: 8px; }
         
@@ -36,10 +35,8 @@
         .record-sidebar { background: var(--panel-bg); border: 1px solid var(--border-color); padding: 15px; border-radius: 10px; height: fit-content; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
         .record-main { background: var(--panel-bg); border: 1px solid var(--border-color); padding: 25px; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
 
-        /* SESTRINSKI PANEL ZA UPUTE */
         .nurse-referral-queue { background: #fef2f2; border: 2px dashed var(--accent-amber); padding: 15px; border-radius: 8px; margin-bottom: 20px; display: none; }
 
-        /* STRUCT TABLE */
         .med-table { width: 100%; border-collapse: collapse; margin-top: 15px; margin-bottom: 15px; font-size: 13px; }
         .med-table th { background: var(--accent-light); color: var(--accent-medical); text-align: left; padding: 10px; border: 1px solid var(--border-color); font-weight: 700; }
         .med-table td { padding: 10px; border: 1px solid var(--border-color); vertical-align: top; }
@@ -59,6 +56,7 @@
         .btn-blue { background: var(--accent-medical); }
         .btn-green { background: var(--accent-green); }
         .btn-amber { background: var(--accent-amber); }
+        .btn-purple { background: var(--accent-purple); }
         .btn-dark { background: var(--accent-blue); }
 
         /* ================= RETRO PIKSELIZOVANI FORMAT ZA ŠTAMPU ================= */
@@ -83,7 +81,6 @@
 </head>
 <body>
 
-<!-- TOP BAR SA DODATIM PROFILIMA LEKARA SPECIJALISTA -->
 <div class="system-top-bar">
     <h2>⚡ ognjen.tech // Integrisani Multi-Specijalistički Medicinski Protokoli</h2>
     <div class="role-selector-zone">
@@ -122,12 +119,10 @@
     <!-- RADNI PROSTOR KARTONA -->
     <div class="patient-record-layout" id="record-layout">
         
-        <!-- ISTORIJA PRETHODNIH SLUČAJEVA (UVEK VIDLJIVA I OSVEŽAVA SE ODMAH) -->
+        <!-- ISTORIJA PRETHODNIH SLUČAJEVA -->
         <div class="record-sidebar">
             <h4 style="margin-top:0; font-size:13px; border-bottom: 2px solid var(--accent-medical); padding-bottom:5px; color:var(--accent-blue)">📜 Prethodni Slučajevi</h4>
-            <div id="cases-list-container">
-                <!-- Generiše se automatski -->
-            </div>
+            <div id="cases-list-container"></div>
             <div style="border-top: 1px dashed var(--border-color); padding-top: 10px; margin-top: 10px;" class="zone-sestra-only">
                 <button class="btn btn-blue" style="width:100%; justify-content: center; font-size:12px;" onclick="createNewCasePrompt()">⚡ Otvori novi slučaj</button>
             </div>
@@ -141,6 +136,8 @@
                     <span style="font-size:12px; color:var(--text-muted);" id="lbl-record-id">Broj kartona: -</span>
                 </div>
                 <div style="display:flex; gap:10px;">
+                    <!-- MODUL ZA UPUTE -->
+                    <button class="btn btn-purple zone-lekar-only" onclick="sendToConsultant()">🔬 Uputi kod konsultanta</button>
                     <button class="btn btn-amber zone-lekar-only" onclick="sendReferralToNurse()">🚀 Uputi kod sestre na štampu</button>
                     <button class="btn btn-dark" onclick="printActiveCase()">🖨️ Direktna Štampa</button>
                 </div>
@@ -152,7 +149,6 @@
 
             <h4 style="margin: 15px 0 5px 0; color:var(--accent-medical); font-size:14px;">📋 Tekući pregled: <span id="lbl-active-case-id" style="color:var(--accent-amber)">-</span></h4>
             
-            <!-- CENTRALNA MEDICINSKA TABELA -->
             <table class="med-table">
                 <thead>
                     <tr>
@@ -161,26 +157,11 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        <td><strong>🤝 1. Anamneza i Status</strong></td>
-                        <td><textarea id="med-t1" rows="3" oninput="realTimeSave()"></textarea></td>
-                    </tr>
-                    <tr>
-                        <td><strong>📈 2. Dijagnostičke metrike</strong></td>
-                        <td><textarea id="med-t2" rows="3" oninput="realTimeSave()"></textarea></td>
-                    </tr>
-                    <tr>
-                        <td><strong>⌨️ 3. Objektivni nalaz periferija</strong></td>
-                        <td><textarea id="med-t3" rows="3" oninput="realTimeSave()"></textarea></td>
-                    </tr>
-                    <tr>
-                        <td><strong>🚀 4. Plan i tok procedure</strong></td>
-                        <td><textarea id="med-t4" rows="3" oninput="realTimeSave()"></textarea></td>
-                    </tr>
-                    <tr>
-                        <td><strong>🛠️ 5. Tehnička podrška / Reklamacije</strong></td>
-                        <td><textarea id="med-t5" rows="3" oninput="realTimeSave()"></textarea></td>
-                    </tr>
+                    <tr><td><strong>🤝 1. Anamneza i Status</strong></td><td><textarea id="med-t1" rows="3" oninput="realTimeSave()"></textarea></td></tr>
+                    <tr><td><strong>📈 2. Dijagnostičke metrike</strong></td><td><textarea id="med-t2" rows="3" oninput="realTimeSave()"></textarea></td></tr>
+                    <tr><td><strong>⌨️ 3. Objektivni nalaz periferija</strong></td><td><textarea id="med-t3" rows="3" oninput="realTimeSave()"></textarea></td></tr>
+                    <tr><td><strong>🚀 4. Plan i tok procedure</strong></td><td><textarea id="med-t4" rows="3" oninput="realTimeSave()"></textarea></td></tr>
+                    <tr><td><strong>🛠️ 5. Tehnička podrška / Reklamacije</strong></td><td><textarea id="med-t5" rows="3" oninput="realTimeSave()"></textarea></td></tr>
                     <tr>
                         <td><strong>🔒 6. Laboratorijska evaluacija</strong></td>
                         <td>
@@ -196,26 +177,27 @@
                             <textarea id="med-t6" rows="2" placeholder="Dodatne beleške laboratorije..." oninput="realTimeSave()"></textarea>
                         </td>
                     </tr>
-                    <tr>
-                        <td><strong>⚙️ 7. Integracija i Otpust</strong></td>
-                        <td><textarea id="med-t7" rows="3" oninput="realTimeSave()"></textarea></td>
-                    </tr>
+                    <tr><td><strong>⚙️ 7. Integracija i Otpust</strong></td><td><textarea id="med-t7" rows="3" oninput="realTimeSave()"></textarea></td></tr>
                     
-                    <!-- KONSULTANTSKA I ZAKLJUČNA ZONA -->
+                    <!-- KONSULTANTSKA I ZAKLJUČNA ZONA (SADA SA DELEGINRANJEM UPUTA) -->
                     <tr style="background: #fffbeb;">
-                        <td><strong>🔬 Konsultantska i sopstvena analiza</strong></td>
+                        <td><strong>🔬 Aktivni Uputi i Analiza Konsultanata</strong></td>
                         <td>
+                            <div style="background: #f3e8ff; padding: 8px; border-radius: 6px; margin-bottom: 10px; border-left: 3px solid var(--accent-purple);">
+                                <strong>📡 Status uputa za konzilijum:</strong> 
+                                <span id="lbl-consultant-status" style="font-style: italic; color: var(--accent-purple);">Nema aktivnih spoljnih uputa za ovaj slučaj.</span>
+                            </div>
                             <div class="form-group">
-                                <label>Ime i prezime spoljnog KONSULTANTA:</label>
-                                <input type="text" id="med-consultant-name" placeholder="Upišite ime konsultanta koji vrši analizu..." oninput="realTimeSave()" style="margin-bottom:8px; font-weight:bold;">
+                                <label>Ime i prezime ciljanog KONSULTANTA:</label>
+                                <input type="text" id="med-consultant-name" placeholder="Upišite ime konsultanta (npr. dr Sarić)..." oninput="realTimeSave()" style="margin-bottom:8px; font-weight:bold;">
                             </div>
                             <div class="form-group">
                                 <label>Vraćeni nalaz i mišljenje konsultanta:</label>
-                                <textarea id="med-consultant-findings" rows="2" placeholder="Nalaz vraćen od konsultanta..." oninput="realTimeSave()"></textarea>
+                                <textarea id="med-consultant-findings" rows="2" placeholder="Nalaz koji je konsultant vratio nakon ekspertize..." oninput="realTimeSave()"></textarea>
                             </div>
                             <div class="form-group" style="margin-top:8px;">
                                 <label style="color:var(--accent-amber)">Moji konačni zaključci i evaluacija:</label>
-                                <textarea id="med-my-conclusions" rows="2" placeholder="Upišite vaše lične zaključke i odluke..." oninput="realTimeSave()"></textarea>
+                                <textarea id="med-my-conclusions" rows="2" placeholder="Upišite vaše lične zaključke i odluke na osnovu svih parametara..." oninput="realTimeSave()"></textarea>
                             </div>
                         </td>
                     </tr>
@@ -258,6 +240,7 @@
     
     <div class="print-content-block" style="border: 1px dashed #000; padding: 10px;">
         <h3>[EVALUACIJA] NALAZI KONSULTANATA I SOPSTVENE ODLUKE</h3>
+        <p><strong>STATUS UPUTA:</strong> <span id="pr-consultant-status"></span></p>
         <p><strong>IMENOVANI SPOLJNI KONSULTANT:</strong> <span id="pr-consultant-name"></span></p>
         <p><strong>NALAZ KONSULTANATA:</strong></p>
         <p id="pr-consultant"></p>
@@ -271,7 +254,6 @@
     </div>
 </div>
 
-
 <script>
     // PRENETI PRETHODNI PODACI PACIJENTA (1-5-26) SAČUVANI I INTEGRISANI U POTPUNOSTI
     let centralPatientRegistry = {
@@ -282,18 +264,17 @@
                 "Inicijalni_Pregled": { 
                     t1: "Pacijent stabilan.", t2: "Rast zabeležen.", t3: "", t4: "", t5: "", t6: "", t7: "", 
                     labDiag: "Čist mrežni saobraćaj - Bez pretnji", 
-                    consultantName: "dr Sarić", consultant: "Sve uredno.", myConclusions: "Nastaviti proceduru." 
+                    consultantName: "dr Sarić", consultant: "Sve uredno.", myConclusions: "Nastaviti proceduru.",
+                    consultantStatus: "Nalaz uspešno završen i unet od strane eksternog eksperta [dr Sarić]"
                 }
             },
             activeCaseId: "Inicijalni_Pregled"
         }
     };
 
-    // Globalna sestrinska lista uputa na čekanju za štampu (simulacija real-time baze)
     let globalReferralQueue = [];
     let activeRecordId = "";
 
-    // MAPA NAZIVA ULOGA ZA ŠTAMPU
     const roleNames = {
         "opsto": "Lekar opšte prakse",
         "kardiolog": "Kardiolog",
@@ -303,7 +284,6 @@
         "ortoped": "Ortoped"
     };
 
-    // UPRAVLJANJE ULOGAMA I OSVEŽAVANJE PANELA U REALNOM VREMENU
     function handleRoleChange() {
         const role = document.getElementById('system-role').value;
         const sestraElements = document.querySelectorAll('.zone-sestra-only');
@@ -313,14 +293,14 @@
         if (role === 'sestra') {
             sestraElements.forEach(el => el.style.display = 'inline-block');
             lekarElements.forEach(el => el.style.display = 'none');
-            nurseQueuePanel.style.display = 'block'; // Sestra vidi pristigle upute lekara
-            toggleFormInputs(true); // Sestra ne menja lekarske nalaze
+            nurseQueuePanel.style.display = 'block';
+            toggleFormInputs(true);
             renderNurseQueue();
         } else {
             sestraElements.forEach(el => el.style.display = 'none');
             lekarElements.forEach(el => el.style.display = 'inline-block');
-            nurseQueuePanel.style.display = 'none'; // Lekari ne vide red za štampu
-            toggleFormInputs(false); // Lekar može da piše
+            nurseQueuePanel.style.display = 'none';
+            toggleFormInputs(false);
         }
     }
 
@@ -330,7 +310,6 @@
         });
     }
 
-    // PRETRAGA KARTONA
     function searchPatientRecord() {
         const id = document.getElementById('search-input').value.trim();
         if (!id) { alert('Unesite ID kartona!'); return; }
@@ -343,7 +322,6 @@
         }
     }
 
-    // SESTRA KREIRA NOVI TRAJNI KARTON
     function createNewPatientPrompt() {
         const id = prompt("Unesite novi jedinstveni ID kartona pacijenta:");
         if (!id) return;
@@ -356,7 +334,7 @@
             patientName: name || "Nezavedeni Pacijent",
             patientMeta: meta || "Nema unetih opštih podataka.",
             cases: {
-                "Pregled_Otvaranja": { t1: "", t2: "", t3: "", t4: "", t5: "", t6: "", t7: "", labDiag: "Čist mrežni saobraćaj - Bez pretnji", consultantName: "", consultant: "", myConclusions: "" }
+                "Pregled_Otvaranja": { t1: "", t2: "", t3: "", t4: "", t5: "", t6: "", t7: "", labDiag: "Čist mrežni saobraćaj - Bez pretnji", consultantName: "", consultant: "", myConclusions: "", consultantStatus: "Nema aktivnih spoljnih uputa." }
             },
             activeCaseId: "Pregled_Otvaranja"
         };
@@ -365,7 +343,6 @@
         loadPatientRecord(activeRecordId);
     }
 
-    // SESTRA OTVARA NOVI SLUČAJ U ISTOM KARTONU
     function createNewCasePrompt() {
         if (!activeRecordId) return;
         const currentRole = document.getElementById('system-role').value;
@@ -380,14 +357,14 @@
         centralPatientRegistry[activeRecordId].cases[caseName] = {
             t1: "", t2: "", t3: "", t4: "", t5: "", t6: "", t7: "",
             labDiag: "Čist mrežni saobraćaj - Bez pretnji",
-            consultantName: "", consultant: "", myConclusions: ""
+            consultantName: "", consultant: "", myConclusions: "",
+            consultantStatus: "Nema aktivnih spoljnih uputa."
         };
 
         centralPatientRegistry[activeRecordId].activeCaseId = caseName;
         loadPatientRecord(activeRecordId);
     }
 
-    // REAL-TIME PRIKAZ KARTONA I ISTORIJE PRETHODNIH PREGLEDA
     function loadPatientRecord(id) {
         const record = centralPatientRegistry[id];
         document.getElementById('record-layout').style.display = 'grid';
@@ -407,8 +384,6 @@
         Object.keys(record.cases).forEach(caseId => {
             const btn = document.createElement('button');
             btn.className = "case-item-btn" + (caseId === record.activeCaseId ? " active" : "");
-            
-            // Prikazujemo i informacije o slučaju radi lakšeg snalaženja lekara
             btn.innerHTML = `<span class="b-title">📁 Slučaj: ${caseId}</span>
                              <span class="b-doctor">Lekar: dr Ognjen Filipović</span>`;
             
@@ -437,9 +412,9 @@
         document.getElementById('med-consultant-name').value = cCase.consultantName || '';
         document.getElementById('med-consultant-findings').value = cCase.consultant || '';
         document.getElementById('med-my-conclusions').value = cCase.myConclusions || '';
+        document.getElementById('lbl-consultant-status').innerText = cCase.consultantStatus || 'Nema aktivnih spoljnih uputa.';
     }
 
-    // OSVEŽAVANJE I ČUVANJE U REALNOM VREMENU (SVAKI TIMING/INPUT SE ODMAH PRENOSI)
     function realTimeSave() {
         if (!activeRecordId) return;
         const record = centralPatientRegistry[activeRecordId];
@@ -458,7 +433,32 @@
         activeCase.myConclusions = document.getElementById('med-my-conclusions').value;
     }
 
-    // LEKAR ŠALJE UPUT SESTRI NA ŠTAMPU (REAL-TIME PRENOS)
+    // NOVA FUNKCIJA: LEKAR ŠALJE ZVANIČAN UPUT KONSULTANTU U REALNOM VREMENU
+    function sendToConsultant() {
+        if (!activeRecordId) return;
+        realTimeSave();
+
+        const record = centralPatientRegistry[activeRecordId];
+        const activeCase = record.cases[record.activeCaseId];
+        
+        const targetConsultant = document.getElementById('med-consultant-name').value.trim();
+        if (!targetConsultant) {
+            alert("Molimo Vas upišite ime konsultanta u polje ispod pre slanja uputa!");
+            document.getElementById('med-consultant-name').focus();
+            return;
+        }
+
+        const role = document.getElementById('system-role').value;
+        const currentSpec = roleNames[role] || "Specijalista";
+
+        // Generisanje sistemskog statusa uputa
+        activeCase.consultantStatus = "UPUT POSLAT: " + currentSpec + " (dr Ognjen Filipović) zahteva hitnu ekspertizu od konsultanta [" + targetConsultant + "]. Čeka se povratni nalaz.";
+        
+        // Osvežavanje interfejsa u realnom vremenu
+        document.getElementById('lbl-consultant-status').innerText = activeCase.consultantStatus;
+        alert("Slučaj je uspešno prosleđen eksternom konsultantu [" + targetConsultant + "] na analizu!");
+    }
+
     function sendReferralToNurse() {
         if (!activeRecordId) return;
         realTimeSave();
@@ -476,10 +476,9 @@
         };
 
         globalReferralQueue.push(referral);
-        alert("Uput za pacijenta " + record.patientName + " je uspešno poslat u realnom vremenu kod medicinske sestre na štampu!");
+        alert("Uput za pacijenta " + record.patientName + " je uspešno poslat kod medicinske sestre na štampu!");
     }
 
-    // SESTRINSKI PANEL - OSVEŽAVANJE REDA ZA ŠTAMPU
     function renderNurseQueue() {
         const container = document.getElementById('nurse-queue-list');
         if (globalReferralQueue.length === 0) {
@@ -490,15 +489,7 @@
         container.innerHTML = "";
         globalReferralQueue.forEach((ref, index) => {
             const div = document.createElement('div');
-            div.style.background = "#fff";
-            div.style.padding = "10px";
-            div.style.border = "1px solid #f0a987";
-            div.style.borderRadius = "6px";
-            div.style.marginBottom = "8px";
-            div.style.display = "flex";
-            div.style.justifyContent = "space-between";
-            div.style.alignItems = "center";
-
+            div.style.background = "#fff"; div.style.padding = "10px"; div.style.border = "1px solid #f0a987"; div.style.borderRadius = "6px"; div.style.marginBottom = "8px"; div.style.display = "flex"; div.style.justifyContent = "space-between"; div.style.alignItems = "center";
             div.innerHTML = `
                 <div>
                     <strong>[${ref.timestamp}] Karton: ${ref.id}</strong> - Pacijent: ${ref.patientName} (Slučaj: ${ref.caseId})<br>
@@ -514,16 +505,11 @@
         const ref = globalReferralQueue[index];
         activeRecordId = ref.id;
         loadPatientRecord(activeRecordId);
-        
-        // Pokretanje štampe tog izveštaja
         printActiveCase();
-
-        // Ukloni iz reda nakon uspešne štampe
         globalReferralQueue.splice(index, 1);
         renderNurseQueue();
     }
 
-    // DIREKTNA ŠTAMPA U POTPUNO PIKSELIZOVANOM MONOSPACE FORMATU
     function printActiveCase() {
         if (!activeRecordId) return;
         realTimeSave();
@@ -546,6 +532,7 @@
         document.getElementById('pr-lab-diag').innerText = activeCase.labDiag;
         document.getElementById('pr-t6').innerText = activeCase.t6 || '[Prazno]';
         document.getElementById('pr-t7').innerText = activeCase.t7 || '[Prazno]';
+        document.getElementById('pr-consultant-status').innerText = activeCase.consultantStatus || 'Nema aktivnih uputa.';
         document.getElementById('pr-consultant-name').innerText = activeCase.consultantName || '[Nije naveden]';
         document.getElementById('pr-consultant').innerText = activeCase.consultant || '[Nema nalaza]';
         document.getElementById('pr-my-conclusions').innerText = activeCase.myConclusions || '[Nema zaključka]';
@@ -556,7 +543,6 @@
         printDoc.classList.remove('print-active');
     }
 
-    // Pokretanje inicijalnog stanja sistema
     handleRoleChange();
 </script>
 </body>
